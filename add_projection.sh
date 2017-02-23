@@ -10,5 +10,5 @@ ncks -A -v y $projfile $ifile
 ncks -A -v latitude $projfile $ifile
 ncks -A -v longitude $projfile $ifile
 ncks -A -v projection_lambert $projfile $ifile
-ncatted -a grid_mapping,values,a,c,projection_lambert $ifile
-ncatted -a coordinates,values,a,c,"longitude latitude" $ifile
+ncatted -a grid_mapping,snow_production_potential,a,c,projection_lambert $ifile
+ncatted -a coordinates,snow_production_potential,a,c,"longitude latitude" $ifile

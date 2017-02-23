@@ -3,3 +3,5 @@ data
 bin
 log
 *.nc
+*.png
+*.swp

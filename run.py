@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import numpy as np
 import matplotlib.pylab as mpl
 import netCDF4
@@ -14,7 +15,6 @@ def plot(lats, lons, values, args):
    mpl.clf()
    dlat = 0
    dlon = 0
-   res = 'l'
    cmap = mpl.cm.RdBu
    if args.cmap is not None:
        cmap = args.cmap
@@ -27,6 +27,7 @@ def plot(lats, lons, values, args):
        urcrnrlat = 72
        llcrnrlon = 0
        urcrnrlon = 30
+       res = verif.util.get_map_resolution([llcrnrlat, urcrnrlat], [llcrnrlon, urcrnrlon])
        if args.xlim is not None:
            llcrnrlon = args.xlim[0]
            urcrnrlon = args.xlim[1]
@@ -43,19 +44,29 @@ def plot(lats, lons, values, args):
        if args.edges is None:
            mpl.contourf(x, y, values, cmap=cmap)
        else:
+           # mpl.contour(x, y, values, [0,1000,2000,3000,4000,5000,6000,7000,8000], colors="k", linewidths=0.3)
            mpl.contourf(x, y, values, args.edges, cmap=cmap)
    else:
        mpl.contourf(values, cmap=cmap)
    cb = mpl.colorbar(extend="both")
    cb.set_label("Snow production potential (hours)")
-   mpl.show()
+
+
+   if args.figsize is not None:
+       mpl.gcf().set_size_inches(int(args.figsize[0]),
+                                 int(args.figsize[1]), forward=True)
+
+   if args.ofile is None:
+       mpl.show()
+   else:
+       mpl.savefig(args.ofile, dpi=args.dpi)
 
 def load_finished_file(filename):
 
     file = netCDF4.Dataset(filename, 'r')
     lats = verif.util.clean(file.variables["latitude"])
     lons = verif.util.clean(file.variables["longitude"])
-    values = verif.util.clean(file.variables["values"])
+    values = verif.util.clean(file.variables["snow_production_potential"])
     file.close()
     return [lats, lons, values]
 
@@ -79,8 +90,11 @@ def wetbulb(temperature, rh):
     return TWet
 
 
-def snow_production(temperature, rh, threshold=0):
-    return wetbulb(temperature, rh) < threshold
+def snow_production(temperature, rh, threshold=0, use_wetbulb=True):
+    if use_wetbulb:
+        return wetbulb(temperature, rh) < threshold
+    else:
+        return temperature < threshold
 
 
 def save(lats, lons, values, filename, x=None, y=None, proj=None):
@@ -99,7 +113,7 @@ def save(lats, lons, values, filename, x=None, y=None, proj=None):
     file.createDimension("y", lats.shape[0])
     vLat=file.createVariable("latitude", "f4", ("y", "x"))
     vLon=file.createVariable("longitude", "f4", ("y", "x"))
-    vValues=file.createVariable("values", "f4", ("y", "x"))
+    vValues=file.createVariable("snow_production_potential", "f4", ("y", "x"))
     if x is not None:
         vX=file.createVariable("x", "f4", ("x"))
     if y is not None:
@@ -113,6 +127,7 @@ def save(lats, lons, values, filename, x=None, y=None, proj=None):
     vLon.units = "degrees_east" ;
     vValues[:] = values
     vValues.units = "hours"
+    vValues.coordinates = "longitude latitude"
     if x is not None:
         vX[:] = x
     if y is not None:
@@ -168,7 +183,7 @@ def get_values(args):
                 # proj = verif.util.clean(Ifile.variables["proj"])
             t2 = verif.util.clean(ifile.variables["air_temperature_2m"][tindex, :, :, :])-273.15
             rh2 = verif.util.clean(ifile.variables["relative_humidity_2m"][tindex, :, :, :])
-            curr_hours = snow_production(t2, rh2, args.threshold)
+            curr_hours = snow_production(t2, rh2, args.threshold, not args.drybulb)
             curr_hours = np.squeeze(np.sum(curr_hours, axis=0))
             if args.month:
                 m = month - 1
@@ -217,15 +232,19 @@ def main():
     p_compute.add_argument('-f', type=str, help='Output filename', dest="filename")
     p_compute.add_argument('-month', help='Compute each month, then sum', action="store_true")
     p_compute.add_argument('-debug', help="Show debug information", action="store_true")
+    p_compute.add_argument('-drybulb', help="Should the dry bulb temperature be used?", action="store_true")
 
     p_plot = subparsers.add_parser('plot', help='Plot hours')
-    p_plot.add_argument('-f', type=str, help='Input filename', dest="filename")
+    p_plot.add_argument('file', type=str, help='Input filename')
     p_plot.add_argument('-xlim', help='x-axis limits', type=verif.util.parse_numbers)
     p_plot.add_argument('-ylim', help='y-axis limits', type=verif.util.parse_numbers)
     p_plot.add_argument('-edges', help='Colorbar edges', type=verif.util.parse_numbers)
     p_plot.add_argument('-cmap', help='Colormap', type=str)
     p_plot.add_argument('-maptype', help='maptype', type=str)
     p_plot.add_argument('-debug', help="Show debug information", action="store_true")
+    p_plot.add_argument('-f', metavar="file", help="Plot to this file", dest="ofile")
+    p_plot.add_argument('-fs', help="Figure size width,height", dest="figsize", type=verif.util.parse_numbers)
+    p_plot.add_argument('-dpi', type=int, default=300, help="Dots per inch in figure")
 
     args = parser.parse_args()
 
@@ -233,7 +252,7 @@ def main():
         [lats, lons, values] = get_values(args)
         save(lats, lons, values, args.filename)
     elif args.command == "plot":
-        [lats, lons, values] = load_finished_file(args.filename)
+        [lats, lons, values] = load_finished_file(args.file)
         plot(lats, lons, values, args)
 
 if __name__ == '__main__':
