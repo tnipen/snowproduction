@@ -1,0 +1,5 @@
+Producing files
+First use ./run compute
+
+Then run 
+add_projection to add x, y, and projection information to the file

@@ -1,9 +1,14 @@
-if [ "$2" == "" ]; then
+#!/bin/bash
+if [ "$1" == "" ]; then
    echo "usage: add_projection.sh input.nc projection.nc"
    exit
 fi
 ifile=$1
-projfile=$2
+if [ "$2" == "" ]; then
+   projfile="/lustre/storeB/users/lisesg/harmonie/AM2p5_MIST2_c38h12/archive//2012/10/25/00/AM2p5_MIST2_c38h12_2012102500_fp.nc"
+else
+   projfile=$2
+fi
 
 ncks -A -v x $projfile $ifile
 ncks -A -v y $projfile $ifile
