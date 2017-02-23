@@ -164,7 +164,7 @@ def main():
     subparsers = parser.add_subparsers(title="valid commands", dest="command")
     p_compute = subparsers.add_parser('compute', help='Compute hours')                                         
     p_compute.add_argument('-d', type=str, help='Dates', dest="dates")
-    p_compute.add_argument('-r', type=float, help='Threshold (degrees C)', dest="threshold")
+    p_compute.add_argument('-r', required=True, type=float, help='Threshold (degrees C)', dest="threshold")
     p_compute.add_argument('-f', type=str, help='Output filename', dest="filename")
 
     p_plot = subparsers.add_parser('plot', help='Plot hours')
