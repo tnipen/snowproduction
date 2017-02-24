@@ -11,6 +11,40 @@ __version__ = "0.1.0"
 __days_in_month = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
 
 
+def main():
+    parser = argparse.ArgumentParser(description="Create maps of snow production potential")
+    parser.add_argument('--version', action="version", version=__version__)
+    subparsers = parser.add_subparsers(title="valid commands", dest="command")
+    p_compute = subparsers.add_parser('compute', help='Compute hours')                                         
+    p_compute.add_argument('-d', help='Dates', dest="dates", type=parse_dates)
+    p_compute.add_argument('-r', required=True, type=float, help='Threshold (degrees C)', dest="threshold")
+    p_compute.add_argument('-f', type=str, help='Output filename', dest="filename")
+    p_compute.add_argument('-month', help='Compute each month, then sum', action="store_true")
+    p_compute.add_argument('-debug', help="Show debug information", action="store_true")
+    p_compute.add_argument('-drybulb', help="Should the dry bulb temperature be used?", action="store_true")
+
+    p_plot = subparsers.add_parser('plot', help='Plot hours')
+    p_plot.add_argument('file', type=str, help='Input filename')
+    p_plot.add_argument('-xlim', help='x-axis limits', type=verif.util.parse_numbers)
+    p_plot.add_argument('-ylim', help='y-axis limits', type=verif.util.parse_numbers)
+    p_plot.add_argument('-edges', help='Colorbar edges', type=verif.util.parse_numbers)
+    p_plot.add_argument('-cmap', help='Colormap', type=str)
+    p_plot.add_argument('-maptype', help='maptype', type=str)
+    p_plot.add_argument('-debug', help="Show debug information", action="store_true")
+    p_plot.add_argument('-f', metavar="file", help="Plot to this file", dest="ofile")
+    p_plot.add_argument('-fs', help="Figure size width,height", dest="figsize", type=verif.util.parse_numbers)
+    p_plot.add_argument('-dpi', type=int, default=300, help="Dots per inch in figure")
+
+    args = parser.parse_args()
+
+    if args.command == "compute":
+        [lats, lons, values] = get_values(args)
+        save(lats, lons, values, args.filename)
+    elif args.command == "plot":
+        [lats, lons, values] = load_finished_file(args.file)
+        plot(lats, lons, values, args)
+
+
 def plot(lats, lons, values, args):
    mpl.clf()
    dlat = 0
@@ -61,8 +95,18 @@ def plot(lats, lons, values, args):
    else:
        mpl.savefig(args.ofile, dpi=args.dpi)
 
-def load_finished_file(filename):
 
+def parse_dates(string):
+    """
+    Translate dates in the form 20130101:20140101 into an array of date integers
+    """
+    dates = verif.util.parse_numbers(string, True)
+    dates = [int(date) for date in dates]
+    return dates 
+
+
+def load_finished_file(filename):
+    """ Retrieve lat, lon, and values from file """
     file = netCDF4.Dataset(filename, 'r')
     lats = verif.util.clean(file.variables["latitude"])
     lons = verif.util.clean(file.variables["longitude"])
@@ -73,6 +117,8 @@ def load_finished_file(filename):
 
 def wetbulb(temperature, rh):
     """
+    Computes the wetbulb temperature of arrays
+
     Arguments:
        rh: surface relative humidity between 0 and 1
        temperature: surface temperature in degrees C
@@ -216,44 +262,6 @@ def get_values(args):
     else:
         hours = total * 1.0 / count * 365
     return [lats, lons, hours]
-
-def main():
-    def parse_dates(string):
-        dates = verif.util.parse_numbers(string, True)
-        dates = [int(date) for date in dates]
-        return dates 
-
-    parser = argparse.ArgumentParser(description="Create maps of snow production potential")
-    parser.add_argument('--version', action="version", version=__version__)
-    subparsers = parser.add_subparsers(title="valid commands", dest="command")
-    p_compute = subparsers.add_parser('compute', help='Compute hours')                                         
-    p_compute.add_argument('-d', help='Dates', dest="dates", type=parse_dates)
-    p_compute.add_argument('-r', required=True, type=float, help='Threshold (degrees C)', dest="threshold")
-    p_compute.add_argument('-f', type=str, help='Output filename', dest="filename")
-    p_compute.add_argument('-month', help='Compute each month, then sum', action="store_true")
-    p_compute.add_argument('-debug', help="Show debug information", action="store_true")
-    p_compute.add_argument('-drybulb', help="Should the dry bulb temperature be used?", action="store_true")
-
-    p_plot = subparsers.add_parser('plot', help='Plot hours')
-    p_plot.add_argument('file', type=str, help='Input filename')
-    p_plot.add_argument('-xlim', help='x-axis limits', type=verif.util.parse_numbers)
-    p_plot.add_argument('-ylim', help='y-axis limits', type=verif.util.parse_numbers)
-    p_plot.add_argument('-edges', help='Colorbar edges', type=verif.util.parse_numbers)
-    p_plot.add_argument('-cmap', help='Colormap', type=str)
-    p_plot.add_argument('-maptype', help='maptype', type=str)
-    p_plot.add_argument('-debug', help="Show debug information", action="store_true")
-    p_plot.add_argument('-f', metavar="file", help="Plot to this file", dest="ofile")
-    p_plot.add_argument('-fs', help="Figure size width,height", dest="figsize", type=verif.util.parse_numbers)
-    p_plot.add_argument('-dpi', type=int, default=300, help="Dots per inch in figure")
-
-    args = parser.parse_args()
-
-    if args.command == "compute":
-        [lats, lons, values] = get_values(args)
-        save(lats, lons, values, args.filename)
-    elif args.command == "plot":
-        [lats, lons, values] = load_finished_file(args.file)
-        plot(lats, lons, values, args)
 
 if __name__ == '__main__':
     main()
