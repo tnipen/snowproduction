@@ -22,6 +22,7 @@ def main():
     p_compute.add_argument('-month', help='Compute each month, then sum', action="store_true")
     p_compute.add_argument('-debug', help="Show debug information", action="store_true")
     p_compute.add_argument('-drybulb', help="Should the dry bulb temperature be used?", action="store_true")
+    p_compute.add_argument('-i', help="Read values from this text file", dest="ifilename")
 
     p_plot = subparsers.add_parser('plot', help='Plot hours')
     p_plot.add_argument('file', type=str, help='Input filename')
@@ -39,7 +40,10 @@ def main():
 
     if args.command == "compute":
         [lats, lons, values] = get_values(args)
-        save(lats, lons, values, args.filename)
+        if args.filename is None:
+            print values
+        else:
+            save(lats, lons, values, args.filename)
     elif args.command == "plot":
         [lats, lons, values] = load_finished_file(args.file)
         plot(lats, lons, values, args)
@@ -93,7 +97,7 @@ def plot(lats, lons, values, args):
    if args.ofile is None:
        mpl.show()
    else:
-       mpl.savefig(args.ofile, dpi=args.dpi)
+       mpl.savefig(args.ofile, bbox_inches='tight', dpi=args.dpi)
 
 
 def parse_dates(string):
@@ -184,6 +188,42 @@ def save(lats, lons, values, filename, x=None, y=None, proj=None):
 
 
 def get_values(args):
+    if args.ifilename is not None:
+        return get_values_text(args)
+    else:
+        return get_values_netcdf(args)
+
+
+def get_values_text(args):
+    file = open(args.ifilename)
+    header = None
+    index = 0
+    total = [0]*12
+    count = [0]*12
+    for line in file:
+        if header is None:
+            header = line
+        else:
+            words = [word for word in line.strip().split(' ') if word != ""]
+            if len(words) == 7 and words[5] != "x" and words[6] != "x" and words[5] != "-" and words[6] != "-":
+                month = int(words[2])
+                m = month - 1
+                t2 = [float(words[5])]
+                rh2 = [float(words[6]) / 100.0]
+                total[m] += np.sum(snow_production(np.array(t2), np.array(rh2), args.threshold))
+                count[m] += 1
+    hours = 0
+    for m in range(0, 12):
+        if count[m] == 0:
+            verif.util.warning("Missing data for month %d" % (m + 1))
+        else:
+            temp = total[m] * __days_in_month[m] / count[m] * 24
+            hours += temp
+            print "Values for month %d: %d %d" % (m + 1, count[m], temp)
+    return [1,1,hours]
+
+
+def get_values_netcdf(args):
     lats = None
     lons = None
     x = None
