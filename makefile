@@ -3,10 +3,10 @@ hakadal:
 	./run.py compute -i hakadal.txt -r=-7
 
 map-3.png: snow_production_-3_1km.nc makefile run.py
-	./run.py plot snow_production_-3_1km.nc -edges 0:200:4000 -dpi 100 -f $@ -fs 15.5,19.5 -fontsize 22 -cmap=epic #Vega20c
+	./run.py plot snow_production_-3_1km.nc -edges 0:200:4000 -dpi 100 -f $@ -fs 11.95,15.5 -fontsize 22 -cmap=epic
 
 map-7.png: snow_production_-7_1km.nc makefile run.py
-	./run.py plot snow_production_-7_1km.nc -edges 0:200:4000 -dpi 100 -f $@ -fs 15.5,19.5 -fontsize 22 -cmap=epic #Vega20c
+	./run.py plot snow_production_-7_1km.nc -edges 0:200:4000 -dpi 100 -f $@ -fs 11.95,15.5 -fontsize 22 -cmap=epic
 
 snow_production_-3.nc:
 	./run.py compute -f $@ -d 20121001:5:20161231 -r=-3 -debug -month
@@ -28,8 +28,8 @@ snow_production_-3_1km.nc: snow_production_-3.nc
 		--interpolate.projString "+proj=utm +zone=33 +north +ellps=WGS84 +datum=WGS84 +units=m +no_defs"\
       --interpolate.yAxisUnit m\
       --interpolate.xAxisUnit m\
-      --interpolate.xAxisValues -75000,-74000,...,1120000\
-      --interpolate.yAxisValues 6450000,6451000,...,8000000\
+      --interpolate.xAxisValues -74500,-73500,...,1119500\
+      --interpolate.yAxisValues 6450500,6451500,...,7999500\
       --interpolate.method nearestneighbor\
       --interpolate.latitudeName latitude\
       --interpolate.longitudeName longitude
@@ -39,8 +39,8 @@ snow_production_-7_1km.nc: snow_production_-7.nc
 		--interpolate.projString "+proj=utm +zone=33 +north +ellps=WGS84 +datum=WGS84 +units=m +no_defs"\
       --interpolate.yAxisUnit m\
       --interpolate.xAxisUnit m\
-      --interpolate.xAxisValues -75000,-74000,...,1120000\
-      --interpolate.yAxisValues 6450000,6451000,...,8000000\
+      --interpolate.xAxisValues -74500,-73500,...,1119500\
+      --interpolate.yAxisValues 6450500,6451500,...,7999500\
       --interpolate.method nearestneighbor\
       --interpolate.latitudeName latitude\
       --interpolate.longitudeName longitude

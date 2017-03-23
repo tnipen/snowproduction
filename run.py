@@ -152,7 +152,7 @@ def plot(lats, lons, values, args):
        cb.ax.set_position([0.05,0.4,0.1,0.5])
        cb.set_ticks([0,1000,2000,3000,4000])
        # cb.set_fontsize(args.legfs)
-       cb.set_label(u"Snøproduksjonspotensial (timer/år)", labelpad=-140, fontsize=32)
+       cb.set_label(u"Snøproduksjonspotensial (timer/år)", labelpad=-120, fontsize=26)
 
    mpl.gca().set_position([0,0,1,1])  # mpl.subplots_adjust(left=0, right=1, bottom=0, top=1, wspace=0, hspace=0)
 
