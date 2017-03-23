@@ -1,11 +1,17 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 import numpy as np
 import matplotlib.pylab as mpl
 import netCDF4
 import verif.util
 import sys
-import mpl_toolkits.basemap
+#import mpl_toolkits.basemap
+import matplotlib.colors
 import argparse
+import matplotlib
+reload(sys)
+sys.setdefaultencoding('ISO-8859-1')
+print matplotlib.__version__
 
 __version__ = "0.1.0"
 __days_in_month = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
@@ -35,6 +41,9 @@ def main():
     p_plot.add_argument('-f', metavar="file", help="Plot to this file", dest="ofile")
     p_plot.add_argument('-fs', help="Figure size width,height", dest="figsize", type=verif.util.parse_numbers)
     p_plot.add_argument('-dpi', type=int, default=300, help="Dots per inch in figure")
+    p_plot.add_argument('-tight', help="Without any border padding. Useful for exporting just the values.", action="store_true")
+    p_plot.add_argument('-legfs', type=int, default=10, help="Legend font size")
+    p_plot.add_argument('-fontsize', type=int, default=12, help="Font size")
 
     args = parser.parse_args()
 
@@ -50,6 +59,14 @@ def main():
 
 
 def plot(lats, lons, values, args):
+   font = {'family' : 'normal',
+       'weight' : 'bold',
+       'size'   : args.fontsize}
+   font = {'sans-serif' : 'Arial',
+         'family': 'san-serif',
+       'size'   : args.fontsize}
+   matplotlib.rc('font', **font)
+
    mpl.clf()
    dlat = 0
    dlon = 0
@@ -80,24 +97,74 @@ def plot(lats, lons, values, args):
        map.drawmapboundary()
        [x,y] = map(lons, lats)
        if args.edges is None:
-           mpl.contourf(x, y, values, cmap=cmap)
+           mpl.contourf(x, y, values, cmap=cmap, extend="both")
        else:
            # mpl.contour(x, y, values, [0,1000,2000,3000,4000,5000,6000,7000,8000], colors="k", linewidths=0.3)
-           mpl.contourf(x, y, values, args.edges, cmap=cmap)
+           mpl.contourf(x, y, values, args.edges, cmap=cmap, extend="both")
    else:
-       mpl.contourf(values, cmap=cmap)
-   cb = mpl.colorbar(extend="both")
-   cb.set_label("Snow production potential (hours)")
+       if args.edges is None:
+           # mpl.contourf(values, cmap=cmap, extend="both")
+           mpl.imshow(values, cmap=cmap)
+       else:
+           cdict = {'red': [(0,   1,   0.388),
+                            (0.25, 0.68,0.9),
+                            (0.5, 0.99,0.19),
+                            (0.75, 0.855,   0.2),
+                            (1,   0.776,1)],
+                    'green': [(0,1,0.388),
+                              (0.25,0.68,0.33),
+                              (0.5,0.82,0.639),
+                              (0.75,0.854,0.51),
+                              (1,0.86,1)],
+                    'blue': [(0,0,0.388),
+                             (0.25,0.68,0.05),
+                             (0.5,0.635,0.329),
+                             (0.75,0.922,0.74),
+                             (1,0.94,1)]}
+           """ 5 colours
+           cdict = {'red': [(0,   1,   0.388),
+                            (0.2, 0.68,0.9),
+                            (0.4, 0.99,0.19),
+                            (0.6, 0.78,   0.459),
+                            (0.8, 0.855,   0.2),
+                            (1,   0.776,1)],
+                    'green': [(0,1,0.388),
+                              (0.2,0.68,0.33),
+                              (0.4,0.82,0.639),
+                              (0.6,0.91,0.420),
+                              (0.8,0.854,0.51),
+                              (1,0.86,1)],
+                    'blue': [(0,0,0.388),
+                             (0.2,0.68,0.05),
+                             (0.4,0.635,0.329),
+                             (0.6,0.752,0.694),
+                             (0.8,0.922,0.74),
+                             (1,0.94,1)]}
+           """
+           epic = matplotlib.colors.LinearSegmentedColormap('epic', cdict)
+           mpl.register_cmap(cmap=epic)
+           mpl.contourf(values, args.edges, cmap=cmap, extend="max")
+           # mpl.imshow((values[::-1,:]/400).astype(int), cmap=cmap, interpolation='nearest')
+           #mpl.imshow(values[200:210,200:210], cmap=cmap, interpolation='nearest')
+   if args.legfs is not None and args.legfs > 0:
+       # ax = mpl.axes([0.1,0.03, 0.1, 0.9])
+       cb = mpl.colorbar(extend="both")  # , ax=ax)
+       cb.ax.set_position([0.05,0.4,0.1,0.5])
+       cb.set_ticks([0,1000,2000,3000,4000])
+       # cb.set_fontsize(args.legfs)
+       cb.set_label(u"Snøproduksjonspotensial (timer/år)", labelpad=-140, fontsize=32)
 
+   mpl.gca().set_position([0,0,1,1])  # mpl.subplots_adjust(left=0, right=1, bottom=0, top=1, wspace=0, hspace=0)
 
    if args.figsize is not None:
-       mpl.gcf().set_size_inches(int(args.figsize[0]),
-                                 int(args.figsize[1]), forward=True)
+       mpl.gcf().set_size_inches((args.figsize),
+                                 forward=True)
 
    if args.ofile is None:
        mpl.show()
    else:
-       mpl.savefig(args.ofile, bbox_inches='tight', dpi=args.dpi)
+       #mpl.savefig(args.ofile, bbox_inches='tight', dpi=args.dpi)
+       mpl.savefig(args.ofile, dpi=args.dpi)
 
 
 def parse_dates(string):
