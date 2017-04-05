@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+# import matplotlib
+# matplotlib.use('svg')
 import numpy as np
 import matplotlib.pylab as mpl
 import netCDF4
@@ -106,21 +108,39 @@ def plot(lats, lons, values, args):
            # mpl.contourf(values, cmap=cmap, extend="both")
            mpl.imshow(values, cmap=cmap)
        else:
-           cdict = {'red': [(0,   1,   0.388),
-                            (0.25, 0.68,0.9),
-                            (0.5, 0.99,0.19),
-                            (0.75, 0.855,   0.2),
+           print args.edges
+           a = 0.2857
+           b = 0.5714
+           a = 0.25
+           b = 0.50
+           # a = 0.333
+           # b = 0.666
+           """
+           cdict = {'red': [ (0.0, 0.68,0.9),
+                            (a, 0.99,0.19),
+                            (b, 0.855,   0.2),
                             (1,   0.776,1)],
-                    'green': [(0,1,0.388),
-                              (0.25,0.68,0.33),
-                              (0.5,0.82,0.639),
-                              (0.75,0.854,0.51),
+                    'green': [(0,0.68,0.33),
+                              (a,0.82,0.639),
+                              (b,0.854,0.51),
                               (1,0.86,1)],
-                    'blue': [(0,0,0.388),
-                             (0.25,0.68,0.05),
-                             (0.5,0.635,0.329),
-                             (0.75,0.922,0.74),
+                    'blue': [(0,0.68,0.05),
+                             (a,0.635,0.329),
+                             (b,0.922,0.74),
                              (1,0.94,1)]}
+                             """
+           cdict = {'red': [ (0.0, 0.68,0.9),
+                            (a, 0.99,0.19),
+                            (b, 0.855,   0.776),
+                            (1,   0.2,1)],
+                    'green': [(0,0.68,0.33),
+                              (a,0.82,0.639),
+                              (b,0.854,0.86),
+                              (1,0.51,1)],
+                    'blue': [(0,0.68,0.05),
+                             (a,0.635,0.329),
+                             (b,0.922,0.94),
+                             (1,0.74,1)]}
            """ 5 colours
            cdict = {'red': [(0,   1,   0.388),
                             (0.2, 0.68,0.9),
@@ -143,14 +163,27 @@ def plot(lats, lons, values, args):
            """
            epic = matplotlib.colors.LinearSegmentedColormap('epic', cdict)
            mpl.register_cmap(cmap=epic)
-           mpl.contourf(values, args.edges, cmap=cmap, extend="max")
+           cnt = mpl.contourf(values, args.edges, cmap=cmap, extend="max")
+           # mpl.imshow(values[::-1,:], cmap=cmap, interpolation="nearest")
+           def has_aa(x):
+               return hasattr(x, 'set_antialiased')
+           #for o in mpl.gcf().findobj(has_aa):
+           #    print o
+           #    o.set_antialiased(False)
+
+           #for c in cnt.collections:
+           #    #c.set_edgecolor("face")
+           #    #print c
+           #    c.set_rasterized(True)
+
            # mpl.imshow((values[::-1,:]/400).astype(int), cmap=cmap, interpolation='nearest')
            #mpl.imshow(values[200:210,200:210], cmap=cmap, interpolation='nearest')
    if args.legfs is not None and args.legfs > 0:
        # ax = mpl.axes([0.1,0.03, 0.1, 0.9])
        cb = mpl.colorbar(extend="both")  # , ax=ax)
        cb.ax.set_position([0.05,0.4,0.1,0.5])
-       cb.set_ticks([0,1000,2000,3000,4000])
+       cb.set_ticks(np.linspace(0,4000,5))  # 16
+       #cb.set_ticks([0,1000,2000,3000,4000])
        # cb.set_fontsize(args.legfs)
        cb.set_label(u"Snøproduksjonspotensial (timer/år)", labelpad=-120, fontsize=26)
 
