@@ -1,2 +1,0 @@
-threshold=-3
-./run.py compute -f snow_production_$threshold.nc -d 20121001:5:20161231 -r=$threshold -debug -month

@@ -1,13 +1,28 @@
 Snow production potential
 =========================
 
-These script compute the number of hours per year that snow can be produced in Norway.
+This program computes the number of hours per year that snow can be produced in Norway. See run.py
+for more information.
 
-Producing files
-First use ./run compute
+Creating data files
+-------------------
+Use the "compute" command to produce NetCDF files with number of hours:
 
-Then run 
-add_projection to add x, y, and projection information to the file
+.. code-block:: bash
+
+   python run.py compute --help
+
+Creating maps
+-------------
+Use the "plot" command to create images
+
+.. code-block:: bash
+
+   python run.py plot --help
+
+Example output
+--------------
+Here is an example map for a wetbulb temperature threshold of -3 degrees Celcius:
 
 .. image:: images/map-3.png
    :alt: Example map
