@@ -1,19 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# import matplotlib
-# matplotlib.use('svg')
 import numpy as np
 import matplotlib.pylab as mpl
 import netCDF4
 import verif.util
 import sys
-#import mpl_toolkits.basemap
 import matplotlib.colors
 import argparse
 import matplotlib
 reload(sys)
 sys.setdefaultencoding('ISO-8859-1')
-print matplotlib.__version__
 
 __version__ = "0.1.0"
 __days_in_month = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
@@ -61,6 +57,14 @@ def main():
 
 
 def plot(lats, lons, values, args):
+   """
+   Creates the plot
+
+   Arguments:
+       lats (np.array): 2D array with latitudes
+       lons (np.array): 2D array with longitudes
+       values (np.array): 2D array with number of hours
+   """
    font = {'family' : 'normal',
        'weight' : 'bold',
        'size'   : args.fontsize}
@@ -109,26 +113,8 @@ def plot(lats, lons, values, args):
            mpl.imshow(values, cmap=cmap)
        else:
            print args.edges
-           a = 0.2857
-           b = 0.5714
            a = 0.25
            b = 0.50
-           # a = 0.333
-           # b = 0.666
-           """
-           cdict = {'red': [ (0.0, 0.68,0.9),
-                            (a, 0.99,0.19),
-                            (b, 0.855,   0.2),
-                            (1,   0.776,1)],
-                    'green': [(0,0.68,0.33),
-                              (a,0.82,0.639),
-                              (b,0.854,0.51),
-                              (1,0.86,1)],
-                    'blue': [(0,0.68,0.05),
-                             (a,0.635,0.329),
-                             (b,0.922,0.74),
-                             (1,0.94,1)]}
-                             """
            cdict = {'red': [ (0.0, 0.68,0.9),
                             (a, 0.99,0.19),
                             (b, 0.855,   0.776),
@@ -141,62 +127,22 @@ def plot(lats, lons, values, args):
                              (a,0.635,0.329),
                              (b,0.922,0.94),
                              (1,0.74,1)]}
-           """ 5 colours
-           cdict = {'red': [(0,   1,   0.388),
-                            (0.2, 0.68,0.9),
-                            (0.4, 0.99,0.19),
-                            (0.6, 0.78,   0.459),
-                            (0.8, 0.855,   0.2),
-                            (1,   0.776,1)],
-                    'green': [(0,1,0.388),
-                              (0.2,0.68,0.33),
-                              (0.4,0.82,0.639),
-                              (0.6,0.91,0.420),
-                              (0.8,0.854,0.51),
-                              (1,0.86,1)],
-                    'blue': [(0,0,0.388),
-                             (0.2,0.68,0.05),
-                             (0.4,0.635,0.329),
-                             (0.6,0.752,0.694),
-                             (0.8,0.922,0.74),
-                             (1,0.94,1)]}
-           """
            epic = matplotlib.colors.LinearSegmentedColormap('epic', cdict)
            mpl.register_cmap(cmap=epic)
-           cnt = mpl.contourf(values, args.edges, cmap=cmap, extend="max")
-           # mpl.imshow(values[::-1,:], cmap=cmap, interpolation="nearest")
-           def has_aa(x):
-               return hasattr(x, 'set_antialiased')
-           #for o in mpl.gcf().findobj(has_aa):
-           #    print o
-           #    o.set_antialiased(False)
-
-           #for c in cnt.collections:
-           #    #c.set_edgecolor("face")
-           #    #print c
-           #    c.set_rasterized(True)
-
-           # mpl.imshow((values[::-1,:]/400).astype(int), cmap=cmap, interpolation='nearest')
-           #mpl.imshow(values[200:210,200:210], cmap=cmap, interpolation='nearest')
+           mpl.contourf(values, args.edges, cmap=cmap, extend="max")
    if args.legfs is not None and args.legfs > 0:
-       # ax = mpl.axes([0.1,0.03, 0.1, 0.9])
        cb = mpl.colorbar(extend="both")  # , ax=ax)
        cb.ax.set_position([0.05,0.4,0.1,0.5])
        cb.set_ticks(np.linspace(0,4000,5))  # 16
-       #cb.set_ticks([0,1000,2000,3000,4000])
-       # cb.set_fontsize(args.legfs)
        cb.set_label(u"Snøproduksjonspotensial (timer/år)", labelpad=-120, fontsize=26)
 
-   mpl.gca().set_position([0,0,1,1])  # mpl.subplots_adjust(left=0, right=1, bottom=0, top=1, wspace=0, hspace=0)
+   mpl.gca().set_position([0,0,1,1])
 
    if args.figsize is not None:
-       mpl.gcf().set_size_inches((args.figsize),
-                                 forward=True)
-
+       mpl.gcf().set_size_inches((args.figsize), forward=True)
    if args.ofile is None:
        mpl.show()
    else:
-       #mpl.savefig(args.ofile, bbox_inches='tight', dpi=args.dpi)
        mpl.savefig(args.ofile, dpi=args.dpi)
 
 
@@ -402,6 +348,7 @@ def get_values_netcdf(args):
     else:
         hours = total * 1.0 / count * 365
     return [lats, lons, hours]
+
 
 if __name__ == '__main__':
     main()
