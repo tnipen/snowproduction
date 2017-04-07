@@ -9,6 +9,11 @@ First use ./run compute
 Then run 
 add_projection to add x, y, and projection information to the file
 
+.. image:: images/map-3.png
+   :alt: Example map
+   :width: 400
+   :align: center
+
 Copyright and license
 ---------------------
 Copyright (C) 2017 MET Norway. Gridded post-processor is licensed under `GPL
